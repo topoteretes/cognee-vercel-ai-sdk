@@ -1,9 +1,9 @@
 import "dotenv/config";
 import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { wrapWithCognee } from "./index.ts";
+import { anthropic } from "@ai-sdk/anthropic";
+import { wrapWithCognee } from "@/index.ts";
 
-const modelWithMemory = wrapWithCognee(openai("gpt-4"), {
+const modelWithMemory = wrapWithCognee(anthropic("claude-3-haiku-20240307"), {
 	apiKey: process.env.COGNEE_API_KEY!,
 });
 
@@ -11,7 +11,7 @@ console.log("Sending prompt to model...");
 
 const { text } = await generateText({
 	model: modelWithMemory,
-	prompt: "What is an agent?",
+	prompt: "Write a vegetarian lasagna recipe for 4 people.",
 });
 
 console.log("Final Response:");
