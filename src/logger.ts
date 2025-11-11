@@ -1,0 +1,3 @@
+import debug from "debug";
+
+export const logger = (namespace: string) => debug(`cognee:${namespace}`);
