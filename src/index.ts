@@ -12,7 +12,7 @@ import {
 } from "@ai-sdk/provider";
 import type { CogneeWrapperOptions } from "@/types.ts";
 import { getSDKClient, type CogneeClient } from "@/cognee_sdk/client.ts";
-import { add, cognify } from "@/tools";
+import { add, cognify, search } from "@/tools";
 
 import { logger } from "@/logger.ts";
 
@@ -38,6 +38,7 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 			/* defaults */
 			storeInteractions: true,
 			retrieveMemory: false,
+			dataset_name: "vercel_conversations",
 			/* defaults */
 			...cogneeOptions,
 		};
@@ -86,22 +87,89 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 			.join(" ");
 	}
 
-	private async storeConversationInCognee(textData: string[]) {
+	private async storeConversationInCognee(textData: string[]): Promise<void> {
 		try {
 			log("Storing interaction in Cognee...");
 			const addResult = await add(this.cogneeClient, {
 				textData,
-				datasetName: "vercel_conversations",
+				datasetName: this.cogneeOptions.dataset_name!,
 			});
 			log("Successfully stored interaction:", addResult);
 
 			await cognify(this.cogneeClient, {
-				datasets: ["vercel_conversations"],
+				datasets: [this.cogneeOptions.dataset_name!],
 				runInBackground: false,
 			});
 		} catch (error) {
 			logError("Failed to store interaction:", error);
 		}
+	}
+
+	private async retrieveFromMemoryInCognee(query: string): Promise<string> {
+		try {
+			log(
+				"Retrieving memories from Cognee for query:",
+				query.substring(0, 100) + "...",
+			);
+
+			const result = await search(this.cogneeClient, {
+				query,
+				datasets: [this.cogneeOptions.dataset_name!],
+				searchType: "GRAPH_COMPLETION",
+				topK: 5,
+			});
+
+			let context = "";
+			if (Array.isArray(result)) {
+				context = result
+					.map((item: any) => {
+						if (typeof item === "string") return item;
+						if (item.text) return item.text;
+						if (item.content) return item.content;
+						if (item.answer) return item.answer;
+						return JSON.stringify(item);
+					})
+					.join("\n\n");
+			} else if (typeof result === "object" && result !== null) {
+				if ((result as any).answer) {
+					context = (result as any).answer;
+				} else if ((result as any).context) {
+					context = (result as any).context;
+				} else {
+					context = JSON.stringify(result);
+				}
+			}
+
+			if (context) {
+				log(
+					"Retrieved context from Cognee:",
+					context.substring(0, 100) + "...",
+				);
+			} else {
+				log("No relevant context found in Cognee");
+			}
+
+			return context;
+		} catch (error) {
+			logError("Failed to retrieve from Cognee:", error);
+			return "";
+		}
+	}
+
+	private augmentPromptWithContext(
+		prompt: LanguageModelV2CallOptions["prompt"],
+		context: string,
+	): LanguageModelV2CallOptions["prompt"] {
+		if (!context || !Array.isArray(prompt)) {
+			return prompt;
+		}
+
+		const contextMessage = {
+			role: "system" as const,
+			content: `Relevant context from previous conversations:\n\n${context}\n\nUse this context to inform your response when relevant.`,
+		};
+
+		return [contextMessage, ...prompt];
 	}
 
 	async doGenerate(options: LanguageModelV2CallOptions): Promise<{
@@ -118,10 +186,23 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 	}> {
 		log("Starting generation...");
 
-		// TODO: enrich baseModel generation with Cognee memory
+		let enhancedOptions = options;
+
+		if (this.cogneeOptions.retrieveMemory) {
+			const promptText = this.extractTextFromPrompt(options.prompt);
+			const context = await this.retrieveFromMemoryInCognee(promptText);
+
+			if (context) {
+				log("Augmenting prompt with Cognee context");
+				enhancedOptions = {
+					...options,
+					prompt: this.augmentPromptWithContext(options.prompt, context),
+				};
+			}
+		}
 
 		log("Calling base model...");
-		const result = await this.baseModel.doGenerate(options);
+		const result = await this.baseModel.doGenerate(enhancedOptions);
 		log("Received response from base model");
 
 		const promptText = this.extractTextFromPrompt(options.prompt);
@@ -179,5 +260,5 @@ export function wrapWithCognee(
 }
 
 export { getSDKClient, type CogneeClient } from "./cognee_sdk/client.ts";
-export { add, cognify } from "./tools/index.ts";
+export { add, cognify, search } from "./tools/index.ts";
 export type { CogneeWrapperOptions } from "./types.ts";
