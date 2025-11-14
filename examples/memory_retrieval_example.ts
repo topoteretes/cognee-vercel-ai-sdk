@@ -1,14 +1,18 @@
 import "dotenv/config";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { wrapWithCognee } from "@/index.ts";
+import { wrapWithCognee, createCogneeClient } from "@/index.ts";
 
-const modelWithMemory = wrapWithCognee(openai("gpt-4"), {
-	apiKey: process.env.COGNEE_API_KEY!,
+const cogneeOptions = {
+	baseURL: "http://localhost:8000",
 	dataset_name: "vercel_contracts_example",
 	storeInteractions: true,
 	retrieveMemory: true,
-});
+};
+
+const modelWithMemory = wrapWithCognee(openai("gpt-4"), cogneeOptions);
+
+const cogneeClient = await createCogneeClient(cogneeOptions);
 
 console.log("Step 1: Storing contract information");
 
@@ -20,13 +24,15 @@ const contracts = [
 
 for (const [index, contract] of contracts.entries()) {
 	console.log(`Storing contract ${index + 1}/${contracts.length}`);
-	await generateText({
-		model: modelWithMemory,
-		prompt: contract,
+	await cogneeClient.add({
+		payload: [contract],
+		datasetName: cogneeOptions.dataset_name,
 	});
 }
 
-await new Promise((resolve) => setTimeout(resolve, 5000));
+await cogneeClient.cognify({
+	datasets: [cogneeOptions.dataset_name],
+});
 
 console.log("Step 2: Querying about healthcare contracts");
 

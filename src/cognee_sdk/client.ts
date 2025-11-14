@@ -108,6 +108,9 @@ export const getSDKClient = async (
 
 	if (isCloudEndpoint(baseUrl)) {
 		log("Detected Cognee Cloud domain");
+		if (!options.apiKey) {
+			throw new Error("API key must be porivded for cloud");
+		}
 		return {
 			type: "cloud",
 			client: createCloudClient(baseUrl, options.apiKey, options.headers),
@@ -126,4 +129,41 @@ export const getSDKClient = async (
 	}
 
 	throw new Error("No version could be matched");
+};
+
+/**
+ * Creates a Cognee client for direct SDK usage (bypassing the AI wrapper)
+ *
+ * @example
+ * ```typescript
+ * import { createCogneeClient } from 'cognee-vercel-ai-sdk';
+ *
+ * const cognee = await createCogneeClient({
+ *   apiKey: 'your-api-key',
+ *   baseURL: 'http://localhost:8000', // optional, defaults to cloud
+ * });
+ *
+ * // Add data
+ * await cognee.add({
+ *   payload: ['Some text to add'],
+ *   datasetName: 'my_dataset',
+ * });
+ *
+ * // Cognify (process data)
+ * await cognee.cognify({
+ *   datasets: ['my_dataset'],
+ * });
+ *
+ * // Search
+ * const results = await cognee.search({
+ *   query: 'What is an agent?',
+ *   datasets: ['my_dataset'],
+ * });
+ * ```
+ */
+export const createCogneeClient = async (
+	options: CogneeWrapperOptions,
+): Promise<CogneeSDK> => {
+	const client = await getSDKClient(options);
+	return client.client;
 };

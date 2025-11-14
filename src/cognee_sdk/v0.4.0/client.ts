@@ -9,10 +9,6 @@ export const createLocalClient = (
 ): LocalCogneeClient => {
 	const headers: Record<string, string> = {};
 
-	if (apiKey) {
-		headers["X-Api-Key"] = apiKey;
-	}
-
 	return createClient<paths>({
 		baseUrl,
 		headers,

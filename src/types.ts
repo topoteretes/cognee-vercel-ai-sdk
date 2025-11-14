@@ -1,5 +1,5 @@
 export interface CogneeWrapperOptions {
-	apiKey: string;
+	apiKey?: string;
 	baseURL?: string;
 	headers?: Record<string, string>;
 

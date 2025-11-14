@@ -19,13 +19,28 @@ export const add = async (client: LocalCogneeClient, args: AddArgs) => {
 		datasetId: args.datasetId,
 	});
 
+	// v0.4.0 API expects multipart/form-data
+	const formData = new FormData();
+
+	args.payload.forEach((text, index) => {
+		const blob = new Blob([text], { type: "text/plain" });
+		formData.append("data", blob, `text_${index}.txt`);
+	});
+
+	if (args.datasetName) {
+		formData.append("datasetName", args.datasetName);
+	}
+	if (args.datasetId) {
+		formData.append("datasetId", args.datasetId);
+	}
+	if (args.nodeSet && args.nodeSet.length > 0) {
+		args.nodeSet.forEach((node) => {
+			formData.append("node_set", node);
+		});
+	}
+
 	const response = await client.POST("/api/v1/add", {
-		body: {
-			data: args.payload,
-			datasetName: args.datasetName ?? null,
-			datasetId: args.datasetId ?? null,
-			node_set: args.nodeSet ?? null,
-		},
+		body: formData as any,
 	});
 
 	if (response.error) {

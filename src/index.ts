@@ -277,7 +277,11 @@ export function wrapWithCognee(
 	return new CogneeLanguageModelWrapper(model, options);
 }
 
-export { getSDKClient, type CogneeClient } from "./cognee_sdk/client.ts";
+export {
+	getSDKClient,
+	createCogneeClient,
+	type CogneeClient,
+} from "./cognee_sdk/client.ts";
 export type {
 	CogneeSDK,
 	AddArgs,
