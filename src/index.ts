@@ -12,7 +12,6 @@ import {
 } from "@ai-sdk/provider";
 import type { CogneeWrapperOptions } from "@/types.ts";
 import { getSDKClient, type CogneeClient } from "@/cognee_sdk/client.ts";
-import { add, cognify, search } from "@/tools";
 
 import { logger } from "@/logger.ts";
 
@@ -27,7 +26,8 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 		| PromiseLike<Record<string, RegExp[]>>;
 
 	private baseModel: LanguageModelV2;
-	private cogneeClient: CogneeClient;
+	private cogneeClient: CogneeClient | null = null;
+	private cogneeClientPromise: Promise<CogneeClient>;
 	private cogneeOptions: CogneeWrapperOptions;
 
 	constructor(baseModel: LanguageModelV2, cogneeOptions: CogneeWrapperOptions) {
@@ -43,12 +43,26 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 			...cogneeOptions,
 		};
 
-		this.cogneeClient = getSDKClient(this.cogneeOptions);
+		// Initialize client asynchronously
+		this.cogneeClientPromise = getSDKClient(this.cogneeOptions).then(
+			(client) => {
+				this.cogneeClient = client;
+				log("Cognee client initialized:", client.type);
+				return client;
+			},
+		);
 
 		this.provider = baseModel.provider;
 		this.modelId = baseModel.modelId;
 		this.supportedUrls = baseModel.supportedUrls;
 		log("Wrapper initialized successfully");
+	}
+
+	private async ensureClient(): Promise<CogneeClient> {
+		if (this.cogneeClient) {
+			return this.cogneeClient;
+		}
+		return await this.cogneeClientPromise;
 	}
 
 	private extractTextFromPrompt(
@@ -90,13 +104,15 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 	private async storeConversationInCognee(textData: string[]): Promise<void> {
 		try {
 			log("Storing interaction in Cognee...");
-			const addResult = await add(this.cogneeClient, {
-				textData,
+			const cogneeClient = await this.ensureClient();
+
+			const addResult = await cogneeClient.client.add({
+				payload: textData,
 				datasetName: this.cogneeOptions.dataset_name!,
 			});
 			log("Successfully stored interaction:", addResult);
 
-			await cognify(this.cogneeClient, {
+			await cogneeClient.client.cognify({
 				datasets: [this.cogneeOptions.dataset_name!],
 				runInBackground: false,
 			});
@@ -112,7 +128,9 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 				query.substring(0, 100) + "...",
 			);
 
-			const result = await search(this.cogneeClient, {
+			const cogneeClient = await this.ensureClient();
+
+			const result = await cogneeClient.client.search({
 				query,
 				datasets: [this.cogneeOptions.dataset_name!],
 				searchType: "GRAPH_COMPLETION",
@@ -260,5 +278,10 @@ export function wrapWithCognee(
 }
 
 export { getSDKClient, type CogneeClient } from "./cognee_sdk/client.ts";
-export { add, cognify, search } from "./tools/index.ts";
+export type {
+	CogneeSDK,
+	AddArgs,
+	CognifyArgs,
+	SearchArgs,
+} from "./cognee_sdk/types.ts";
 export type { CogneeWrapperOptions } from "./types.ts";
