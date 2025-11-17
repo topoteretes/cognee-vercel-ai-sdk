@@ -1,6 +1,6 @@
 {
 	"name": "cognee-vercel-ai-sdk",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Vercel AI SDK wrapper with Cognee memory integration for persistent context and conversation storage",
 	"type": "module",
 	"main": "dist/index.js",
@@ -23,7 +23,7 @@
 	],
 	"scripts": {
 		"dev": "tsx src/index.ts",
-		"build": "tsc",
+		"build": "tsup",
 		"test": "vitest",
 		"test:ts": "tsc --noEmit",
 		"format": "biome format --write",
@@ -36,6 +36,8 @@
 		"@types/node": "^24.10.0",
 		"jest": "^30.2.0",
 		"openapi-typescript": "^7.10.1",
+		"tsc-alias": "^1.8.16",
+		"tsup": "^8.5.1",
 		"tsx": "^4.20.6",
 		"typescript": "^5.9.3",
 		"vitest": "^4.0.8"
