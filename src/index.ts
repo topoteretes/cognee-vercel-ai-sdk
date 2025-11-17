@@ -243,11 +243,68 @@ export class CogneeLanguageModelWrapper implements LanguageModelV2 {
 		request?: { body?: unknown };
 		response?: { headers?: SharedV2Headers };
 	}> {
-		// TODO: plug into streaming
+		log("Starting streaming generation...");
 
-		const result = await this.baseModel.doStream(options);
+		let enhancedOptions = options;
 
-		return result;
+		if (this.cogneeOptions.retrieveMemory) {
+			const promptText = this.extractTextFromPrompt(options.prompt);
+			const context = await this.retrieveFromMemoryInCognee(promptText);
+
+			if (context) {
+				log("Augmenting prompt with Cognee context");
+				enhancedOptions = {
+					...options,
+					prompt: this.augmentPromptWithContext(options.prompt, context),
+				};
+			}
+		}
+
+		log("Calling base model stream...");
+		const result = await this.baseModel.doStream(enhancedOptions);
+
+		const promptText = this.extractTextFromPrompt(options.prompt);
+		let accumulatedText = "";
+
+		const transformedStream = result.stream.pipeThrough(
+			new TransformStream<LanguageModelV2StreamPart, LanguageModelV2StreamPart>(
+				{
+					transform: (chunk, controller) => {
+						if (chunk.type === "text-delta") {
+							accumulatedText += chunk.delta;
+						}
+
+						controller.enqueue(chunk);
+					},
+					flush: async (controller) => {
+						if (this.cogneeOptions.storeInteractions && accumulatedText) {
+							log("Stream complete, storing interaction...");
+							log("Extracted prompt:", promptText.substring(0, 100) + "...");
+							log(
+								"Extracted response:",
+								accumulatedText.substring(0, 100) + "...",
+							);
+
+							const textData = [
+								`User: ${promptText}`,
+								`Assistant: ${accumulatedText}`,
+							];
+
+							this.storeConversationInCognee(textData).catch((error) => {
+								logError("Failed to store streaming conversation:", error);
+							});
+						}
+						log("Streaming generation complete\n");
+					},
+				},
+			),
+		);
+
+		return {
+			stream: transformedStream,
+			...(result.request && { request: result.request }),
+			...(result.response && { response: result.response }),
+		};
 	}
 }
 
