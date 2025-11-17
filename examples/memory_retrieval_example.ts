@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { wrapWithCognee, createCogneeClient } from "@/index.ts";
+import { wrapWithCognee, createCogneeClient } from "../src/index";
 
 const cogneeOptions = {
 	baseURL: "http://localhost:8000",

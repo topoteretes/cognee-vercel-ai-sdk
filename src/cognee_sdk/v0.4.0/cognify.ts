@@ -1,6 +1,6 @@
-import type { LocalCogneeClient } from "./client.ts";
-import type { CognifyArgs } from "../types.ts";
-import { logger } from "@/logger.ts";
+import type { LocalCogneeClient } from "./client";
+import type { CognifyArgs } from "../types";
+import { logger } from "@/logger";
 
 const log = logger("local:v0.4.0:cognify");
 

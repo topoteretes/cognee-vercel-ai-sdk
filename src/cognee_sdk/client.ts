@@ -1,8 +1,8 @@
-import type { CogneeSDK } from "./types.ts";
-import type { CogneeWrapperOptions } from "../types.ts";
-import { createCloudClient } from "./cloud/index.ts";
-import { createV040SDK } from "./v0.4.0/index.ts";
-import { logger } from "@/logger.ts";
+import type { CogneeSDK } from "./types";
+import type { CogneeWrapperOptions } from "../types";
+import { createCloudClient } from "./cloud/index";
+import { createV040SDK } from "./v0.4.0/index";
+import { logger } from "@/logger";
 
 const log = logger("sdk-client");
 

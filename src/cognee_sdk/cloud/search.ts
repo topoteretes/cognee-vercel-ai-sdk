@@ -1,6 +1,6 @@
-import type { CloudCogneeClient } from "./client.ts";
-import type { SearchArgs } from "../types.ts";
-import { logger } from "@/logger.ts";
+import type { CloudCogneeClient } from "./client";
+import type { SearchArgs } from "../types";
+import { logger } from "@/logger";
 
 const [log, logError] = [logger("cloud:search"), logger("cloud:search:error")];
 

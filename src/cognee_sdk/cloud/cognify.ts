@@ -1,6 +1,6 @@
-import type { CloudCogneeClient } from "./client.ts";
-import type { CognifyArgs } from "../types.ts";
-import { logger } from "@/logger.ts";
+import type { CloudCogneeClient } from "./client";
+import type { CognifyArgs } from "../types";
+import { logger } from "@/logger";
 
 const log = logger("cloud:cognify");
 

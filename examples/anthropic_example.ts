@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
-import { wrapWithCognee } from "@/index.ts";
+import { wrapWithCognee } from "../src/index";
 
 const modelWithMemory = wrapWithCognee(anthropic("claude-3-haiku-20240307"), {
 	apiKey: process.env.COGNEE_API_KEY!,
