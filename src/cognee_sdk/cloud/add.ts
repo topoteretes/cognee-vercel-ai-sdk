@@ -1,6 +1,6 @@
-import type { CloudCogneeClient } from "./client.ts";
-import type { AddArgs } from "../types.ts";
-import { logger } from "@/logger.ts";
+import type { CloudCogneeClient } from "./client";
+import type { AddArgs } from "../types";
+import { logger } from "@/logger";
 
 const [log, logError] = [logger("cloud:add"), logger("cloud:add:error")];
 

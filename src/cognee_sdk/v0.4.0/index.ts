@@ -1,8 +1,8 @@
-import type { CogneeSDK, AddArgs, CognifyArgs, SearchArgs } from "../types.ts";
-import { createLocalClient, type LocalCogneeClient } from "./client.ts";
-import { add as addImpl } from "./add.ts";
-import { cognify as cognifyImpl } from "./cognify.ts";
-import { search as searchImpl } from "./search.ts";
+import type { CogneeSDK, AddArgs, CognifyArgs, SearchArgs } from "../types";
+import { createLocalClient, type LocalCogneeClient } from "./client";
+import { add as addImpl } from "./add";
+import { cognify as cognifyImpl } from "./cognify";
+import { search as searchImpl } from "./search";
 
 /**
  * Creates a local Cognee SDK implementation for v0.4.0

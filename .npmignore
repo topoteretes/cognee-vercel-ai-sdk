@@ -1,0 +1,38 @@
+# Source files - don't publish
+src/
+examples/
+
+# Configuration files
+tsconfig.json
+.env
+.env.*
+!.env.example
+
+# Development files
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Testing
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+coverage/
+.nyc_output/
+
+# Build tools
+node_modules/
+yarn.lock
+package-lock.json
+
+# Biome
+.biome/
+biome.json
+
+# Git
+.git/
+.gitignore
+.gitattributes
+

@@ -1,9 +1,9 @@
-import type { CogneeSDK, AddArgs, CognifyArgs, SearchArgs } from "../types.ts";
-import { createCloudRawClient, type CloudCogneeClient } from "./client.ts";
-import { add as addImpl } from "./add.ts";
-import { cognify as cognifyImpl } from "./cognify.ts";
-import { search as searchImpl } from "./search.ts";
-import { logger } from "@/logger.ts";
+import type { CogneeSDK, AddArgs, CognifyArgs, SearchArgs } from "../types";
+import { createCloudRawClient, type CloudCogneeClient } from "./client";
+import { add as addImpl } from "./add";
+import { cognify as cognifyImpl } from "./cognify";
+import { search as searchImpl } from "./search";
+import { logger } from "@/logger";
 
 const log = logger("cloud-client");
 

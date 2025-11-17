@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { wrapWithCognee } from "@/index.ts";
+import { wrapWithCognee } from "../src/index";
 
 const modelWithMemory = wrapWithCognee(openai("gpt-4"), {
 	baseURL: "http://localhost:8000",

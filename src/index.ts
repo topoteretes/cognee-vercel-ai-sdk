@@ -10,10 +10,10 @@ import {
 	type LanguageModelV2CallWarning,
 	type LanguageModelV2StreamPart,
 } from "@ai-sdk/provider";
-import type { CogneeWrapperOptions } from "@/types.ts";
-import { getSDKClient, type CogneeClient } from "@/cognee_sdk/client.ts";
+import type { CogneeWrapperOptions } from "@/types";
+import { getSDKClient, type CogneeClient } from "@/cognee_sdk/client";
 
-import { logger } from "@/logger.ts";
+import { logger } from "@/logger";
 
 const [log, logError] = [logger("entrypoint"), logger("entrypoint:error")];
 
@@ -281,11 +281,11 @@ export {
 	getSDKClient,
 	createCogneeClient,
 	type CogneeClient,
-} from "./cognee_sdk/client.ts";
+} from "./cognee_sdk/client";
 export type {
 	CogneeSDK,
 	AddArgs,
 	CognifyArgs,
 	SearchArgs,
-} from "./cognee_sdk/types.ts";
-export type { CogneeWrapperOptions } from "./types.ts";
+} from "./cognee_sdk/types";
+export type { CogneeWrapperOptions } from "./types";
